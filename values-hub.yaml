@@ -5,6 +5,11 @@ clusterGroup:
     - open-cluster-management
     - vault
     - golang-external-secrets
+    - llm-monitoring:
+        labels:
+          argocd.argoproj.io/managed-by: openshift-gitops
+        annotations:
+          openshift.io/display-name: "Monitoting of Demo LLM"
   subscriptions:
     # acm:
     #   name: advanced-cluster-management

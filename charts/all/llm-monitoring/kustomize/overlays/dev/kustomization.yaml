@@ -39,13 +39,13 @@ patchesJSON6902:
         path: /subjects/0/namespace
         value: llm-monitoring
 resources:
-  - ../../base/operators.coreos.com/operatorgroups/prometheus
-  - ../../base/operators.coreos.com/subscriptions/prometheus
-  - ../../base/operators.coreos.com/subscriptions/grafana
+  #  - ../../base/operators.coreos.com/operatorgroups/prometheus
+  #- ../../base/operators.coreos.com/subscriptions/prometheus
+  #- ../../base/operators.coreos.com/subscriptions/grafana
   - ../../base/prometheus
   - ../../base/grafana
   - ../../base/grafanadashboard
   - ../../base/servicemonitor
   - ../../base/rbac/clusterrole
   - ../../base/rbac/clusterrolebinding
-  - namespaces
+    #- namespaces
