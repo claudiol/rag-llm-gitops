@@ -16,16 +16,17 @@ clusterGroup:
     #   namespace: open-cluster-management
     #   channel: release-2.9
     #   csv: advanced-cluster-management.v2.6.1
-    promethues:
-      name: prometheus 
-      namespace: llm-monitoring
-      source: community-operators
-      channel: beta
-    grafana:
-      name: grafana-operator
-      namespace: llm-monitoring
-      source: community-operators
-      channel: v4
+
+    #promethues:
+    #  name: prometheus 
+    #  namespace: llm-monitoring
+    #  source: community-operators
+    #  channel: beta
+    #grafana:
+    #  name: grafana-operator
+    #  namespace: llm-monitoring
+    #  source: community-operators
+    #  channel: v4
 
       
   projects:
