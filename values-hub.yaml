@@ -7,8 +7,7 @@ clusterGroup:
     - golang-external-secrets
     - openshift-nfd
     - nvidia-gpu-operator:
-        operatorGroup: true
-        targetNamespaces:
+        operatorGroup: false
   subscriptions:
     # acm:
     #   name: advanced-cluster-management
