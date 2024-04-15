@@ -90,7 +90,7 @@ clusterGroup:
       name: nvidia-config
       namespace: nvidia-network-operator
       project: gpu-config
-      path: charts/all/nvidia-config
+      path: charts/all/nvidia-gpu-config
 
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
