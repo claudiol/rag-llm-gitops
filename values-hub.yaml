@@ -5,7 +5,10 @@ clusterGroup:
     - open-cluster-management
     - vault
     - golang-external-secrets
-    - nvidia-network-operator
+    - nvidia-network-operator:
+      operatorGroup: true
+      targetNamespaces:
+
   subscriptions:
     # acm:
     #   name: advanced-cluster-management
