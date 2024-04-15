@@ -19,7 +19,7 @@ clusterGroup:
       namespace: openshift-nfd
       channel: stable
     nvidia:
-      name: nvidia-gpu-operator
+      name: gpu-operator-certified
       namespace: nvidia-gpu-operator
       channel: v23.6
       source: certified-operators
