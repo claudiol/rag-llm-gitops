@@ -16,9 +16,11 @@ clusterGroup:
     #   csv: advanced-cluster-management.v2.6.1
     nfd:
       name: nfd
+      namespace: openshift-nfd
       channel: stable
     nvidia:
       name: nvidia-gpu-operator
+      namespace: nvidia-gpu-operator
       channel: v23.6
       source: certified-operators
 
