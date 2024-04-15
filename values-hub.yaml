@@ -15,10 +15,10 @@ clusterGroup:
     nfd:
       name: nfd
       channel: stable
-        #    nvidia:
-        #      name: nvidia-network-operator
-        #      channel: v23.7.0
-        #      source: certified-operators
+    nvidia:
+      name: nvidia-gpu-operator
+      channel: v23.6
+      source: certified-operators
 
   projects:
     - hub
