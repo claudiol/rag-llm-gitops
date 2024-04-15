@@ -6,8 +6,7 @@ clusterGroup:
     - vault
     - golang-external-secrets
     - openshift-nfd
-    - nvidia-gpu-operator:
-        operatorGroup: false
+    - nvidia-gpu-operator
   subscriptions:
     # acm:
     #   name: advanced-cluster-management
