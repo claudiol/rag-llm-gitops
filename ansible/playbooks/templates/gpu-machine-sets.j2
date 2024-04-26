@@ -10,21 +10,19 @@ metadata:
     machine.openshift.io/cluster-api-cluster: {{ clusterId }}
   name: {{ clusterId }}-gpu-{{ cloudRegion }}
   namespace: openshift-machine-api
-  resourceVersion: "21119"
-  uid: d95a217d-bf63-4f23-b6f5-c6fe63a6864d
 spec:
   replicas: 3
   selector:
     matchLabels:
       machine.openshift.io/cluster-api-cluster: {{ clusterId }}
-      machine.openshift.io/cluster-api-machineset: {{ clusterId }}-gpu-{{ cloudRegion }}b
+      machine.openshift.io/cluster-api-machineset: {{ clusterId }}-gpu-{{ cloudAvailabilityZone }}
   template:
     metadata:
       labels:
         machine.openshift.io/cluster-api-cluster: {{ clusterId }}
         machine.openshift.io/cluster-api-machine-role: worker
         machine.openshift.io/cluster-api-machine-type: worker
-        machine.openshift.io/cluster-api-machineset: {{ clusterId }}-gpu-{{ cloudRegion }}b
+        machine.openshift.io/cluster-api-machineset: {{ clusterId }}-gpu-{{ cloudAvailabilityZone }}
     spec:
       taints:
         - effect: NoSchedule
@@ -35,7 +33,7 @@ spec:
       providerSpec:
         value:
           ami:
-            id: ami-08fea87cf74dfe205
+            id: {{ instanceAmi }}
           apiVersion: machine.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -56,7 +54,7 @@ spec:
             creationTimestamp: null
           metadataServiceOptions: {}
           placement:
-            availabilityZone: {{ cloudRegion }}b
+            availabilityZone: {{ cloudAvailabilityZone }}
             region: {{ cloudRegion }}
           securityGroups:
           - filters:
@@ -67,7 +65,7 @@ spec:
             filters:
             - name: tag:Name
               values:
-              - {{ clusterId }}-private-us-west-1b
+              - {{ clusterId }}-private-{{ cloudAvailabilityZone }}
           tags:
           - name: kubernetes.io/cluster/{{ clusterId }}
             value: owned

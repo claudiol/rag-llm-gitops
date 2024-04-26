@@ -1,4 +1,4 @@
-- name: Hello World Example
+- name: Generate Machine Set for RAG-LLM Pattern
   hosts: localhost
   connection: local
   gather_facts: false
@@ -6,40 +6,79 @@
   vars:
     ns: imperative
   tasks:
-    - name: Get the infrai-id for the cluster
+    - name: "[create-gpu-machine-set] Get the infrai-id for the cluster"
       ansible.builtin.command:
         cmd: oc get infrastructure cluster -o jsonpath='{.status.platform}'
       register: cloudprovider
 
-    - name: Get the infrai-id for the cluster
+    - name: "[create-gpu-machine-set] Get the infrai-id for the cluster"
       ansible.builtin.command:
         cmd: oc get -o jsonpath='{.status.infrastructureName}{"\n"}' infrastructure cluster
       register: infraid
 
-    - name: Get the region for the cluster
+    - name: "[create-gpu-machine-set] Get the region for the cluster"
       ansible.builtin.command:
         cmd: oc get infrastructure cluster -o jsonpath='{.status.platformStatus.{{cloudprovider.stdout | lower}}.region}'
       register: regioninfo
 
-    - name: InfraID
+    - name: "[create-gpu-machine-set] Get name of MachineSet"
+      ansible.builtin.shell:
+        cmd: oc get machineset -n openshift-machine-api | grep worker | head -1  | awk '{ print $1}'
+      register: machinesetname 
+
+    - name: "[create-gpu-machine-set] Get MachineSet name"
+      ansible.builtin.shell:
+        cmd: oc get machineset -n openshift-machine-api | grep worker | head -1  | awk '{ print $1}'
+      register: machinesetname 
+
+    - name: "[create-gpu-machine-set] Get AMI ID from MachineSet"
+      ansible.builtin.command:
+        cmd: oc get machineset lc-machineset-a70d-1-zc4ls-worker-us-west-2a -n openshift-machine-api -o jsonpath='{.spec.template.spec.providerSpec.value.ami.id}'
+      register: aminame 
+
+    - name: "[create-gpu-machine-set] Debug Print MachineSet Name"
+      ansible.builtin.debug:
+        var: machinesetname.stdout
+
+    - name: "[create-gpu-machine-set] Debug Print MachineSet AMI"
+      ansible.builtin.debug:
+        var: aminame.stdout
+
+    - name: "[create-gpu-machine-set] Debug Print cloudProvider"
       ansible.builtin.debug:
         var: cloudprovider.stdout
 
-    - name: InfraID
+    - name: "[create-gpu-machine-set] Debug Print InfraID"
       ansible.builtin.debug:
         var: infraid.stdout
 
-    - name: Region Info
+    - name: "[create-gpu-machine-set] Debug Print Region Info"
       ansible.builtin.debug:
         var: regioninfo.stdout
 
-    - name: Setting facts so that they will be persisted in the fact cache
+    - name: "[create-gpu-machine-set] Gather information about all availability zones"
+      amazon.aws.aws_az_info:
+      register: awszoneinfo
+
+    - name: "[create-gpu-machine-set] Debug AWS Zone Info"
+      ansible.builtin.debug:
+        var: awszoneinfo.availability_zones[0].zone_name
+
+    - name: "[create-gpu-machine-set] Setting facts so that they will be persisted in the fact cache"
       ansible.builtin.set_fact:
         clusterId: "{{ infraid.stdout }}"
         cloudProvider: "{{ cloudprovider.stdout | lower }}"
-        cloudRegion: "{{ regioninfo.stdout }}" 
-        cacheable: yes
-    - name: generate machineset
+        cloudAvailabilityZone: "{{ awszoneinfo.availability_zones[0].zone_name }}"
+        instanceAmi: "{{ aminame.stdout }}"
+        cloudRegion: "{{ regioninfo.stdout }}"
+        cacheable: no
+
+    - name: "[create-gpu-machine-set] Generate machineset"
       ansible.builtin.template:
         src: templates/gpu-machine-sets.j2
         dest: /tmp/gpu-machineset.yaml
+
+    - name: "[create-gpu-machine-set] Apply machineset to cluster {{ clusterId }}"
+      kubernetes.core.k8s:
+        state: present
+        src: /tmp/gpu-machineset.yaml
