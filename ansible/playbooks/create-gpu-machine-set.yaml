@@ -1,0 +1,45 @@
+- name: Hello World Example
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  become: false
+  vars:
+    ns: imperative
+  tasks:
+    - name: Get the infrai-id for the cluster
+      ansible.builtin.command:
+        cmd: oc get infrastructure cluster -o jsonpath='{.status.platform}'
+      register: cloudprovider
+
+    - name: Get the infrai-id for the cluster
+      ansible.builtin.command:
+        cmd: oc get -o jsonpath='{.status.infrastructureName}{"\n"}' infrastructure cluster
+      register: infraid
+
+    - name: Get the region for the cluster
+      ansible.builtin.command:
+        cmd: oc get infrastructure cluster -o jsonpath='{.status.platformStatus.{{cloudprovider.stdout | lower}}.region}'
+      register: regioninfo
+
+    - name: InfraID
+      ansible.builtin.debug:
+        var: cloudprovider.stdout
+
+    - name: InfraID
+      ansible.builtin.debug:
+        var: infraid.stdout
+
+    - name: Region Info
+      ansible.builtin.debug:
+        var: regioninfo.stdout
+
+    - name: Setting facts so that they will be persisted in the fact cache
+      ansible.builtin.set_fact:
+        clusterId: "{{ infraid.stdout }}"
+        cloudProvider: "{{ cloudprovider.stdout | lower }}"
+        cloudRegion: "{{ regioninfo.stdout }}" 
+        cacheable: yes
+    - name: generate machineset
+      ansible.builtin.template:
+        src: templates/gpu-machine-sets.j2
+        dest: /tmp/gpu-machineset.yaml
