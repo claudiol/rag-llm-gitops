@@ -7,54 +7,19 @@
     ns: imperative
   tasks:
     - name: "[create-gpu-machine-set] Get the infrai-id for the cluster"
-      ansible.builtin.command:
-        cmd: oc get infrastructure cluster -o jsonpath='{.status.platform}'
-      register: cloudprovider
+      kubernetes.core.k8s_info:
+        api_version: config.openshift.io/v1
+        kind: infrastructure
+        name: cluster
+      register: infraInfo
 
-    - name: "[create-gpu-machine-set] Get the infrai-id for the cluster"
-      ansible.builtin.command:
-        cmd: oc get -o jsonpath='{.status.infrastructureName}{"\n"}' infrastructure cluster
-      register: infraid
+    - name: "[create-gpu-machine-set] Get Platform Name"
+      ansible.builtin.set_fact:
+        cloudProvider: "{{ infraInfo.resources[0].status.platform | lower}}"
 
-    - name: "[create-gpu-machine-set] Get the region for the cluster"
-      ansible.builtin.command:
-        cmd: oc get infrastructure cluster -o jsonpath='{.status.platformStatus.{{cloudprovider.stdout | lower}}.region}'
-      register: regioninfo
-
-    - name: "[create-gpu-machine-set] Get name of MachineSet"
-      ansible.builtin.shell:
-        cmd: oc get machineset -n openshift-machine-api | grep worker | head -1  | awk '{ print $1}'
-      register: machinesetname 
-
-    - name: "[create-gpu-machine-set] Get MachineSet name"
-      ansible.builtin.shell:
-        cmd: oc get machineset -n openshift-machine-api | grep worker | head -1  | awk '{ print $1}'
-      register: machinesetname 
-
-    - name: "[create-gpu-machine-set] Get AMI ID from MachineSet"
-      ansible.builtin.command:
-        cmd: oc get machineset lc-machineset-a70d-1-zc4ls-worker-us-west-2a -n openshift-machine-api -o jsonpath='{.spec.template.spec.providerSpec.value.ami.id}'
-      register: aminame 
-
-    - name: "[create-gpu-machine-set] Debug Print MachineSet Name"
-      ansible.builtin.debug:
-        var: machinesetname.stdout
-
-    - name: "[create-gpu-machine-set] Debug Print MachineSet AMI"
-      ansible.builtin.debug:
-        var: aminame.stdout
-
-    - name: "[create-gpu-machine-set] Debug Print cloudProvider"
-      ansible.builtin.debug:
-        var: cloudprovider.stdout
-
-    - name: "[create-gpu-machine-set] Debug Print InfraID"
-      ansible.builtin.debug:
-        var: infraid.stdout
-
-    - name: "[create-gpu-machine-set] Debug Print Region Info"
-      ansible.builtin.debug:
-        var: regioninfo.stdout
+    - name: "[create-gpu-machine-set] Set fact Region"
+      ansible.builtin.set_fact:
+        cloudRegion: "{{ infraInfo.resources[0].status.platformStatus[cloudProvider].region }}"
 
     - name: "[create-gpu-machine-set] Gather information about all availability zones"
       amazon.aws.aws_az_info:
@@ -64,13 +29,24 @@
       ansible.builtin.debug:
         var: awszoneinfo.availability_zones[0].zone_name
 
-    - name: "[create-gpu-machine-set] Setting facts so that they will be persisted in the fact cache"
+    - name: "[create-gpu-machine-set] Search for worker MachineSets"
+      kubernetes.core.k8s_info:
+        api: machine.openshift.io/v1beta1
+        kind: Machine
+        namespace: openshift-machine-api
+        label_selectors:
+          - "machine.openshift.io/cluster-api-machine-type=worker"
+      register: machines
+
+    - name: Debug machineset return
+      ansible.builtin.debug:
+        var: machines.resources[0].spec
+
+    - name: "[create-gpu-machine-set] Setting facts to be used in MachineSet template"
       ansible.builtin.set_fact:
-        clusterId: "{{ infraid.stdout }}"
-        cloudProvider: "{{ cloudprovider.stdout | lower }}"
+        clusterId: "{{ infraInfo.resources[0].status.infrastructureName }}"
         cloudAvailabilityZone: "{{ awszoneinfo.availability_zones[0].zone_name }}"
-        instanceAmi: "{{ aminame.stdout }}"
-        cloudRegion: "{{ regioninfo.stdout }}"
+        instanceAmi: "{{ machines.resources[0].spec.providerSpec.value.ami.id }}"
         cacheable: no
 
     - name: "[create-gpu-machine-set] Generate machineset"
@@ -82,3 +58,4 @@
       kubernetes.core.k8s:
         state: present
         src: /tmp/gpu-machineset.yaml
+      when: cloudRegion == "us-west-2" or cloudRegion == "us-east-1"
