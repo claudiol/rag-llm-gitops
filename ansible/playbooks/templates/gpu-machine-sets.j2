@@ -29,7 +29,9 @@ spec:
           key: odh-notebook
           value: 'true'
       lifecycleHooks: {}
-      metadata: {}
+      metadata:
+        labels:
+          node-role.kubernetes.io/odh-notebook: ''
       providerSpec:
         value:
           ami:
