@@ -101,6 +101,12 @@ clusterGroup:
       project: gpu-config
       path: charts/all/rag-llm-ui-config
 
+    llm-monitoring-config:
+      name: grafana-ui-config
+      namespace: llm-monitoring
+      project: gpu-config
+      path: charts/all/llm-monitoring-config
+
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
