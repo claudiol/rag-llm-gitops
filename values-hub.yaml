@@ -5,8 +5,8 @@ clusterGroup:
     - open-cluster-management
     - vault
     - golang-external-secrets
-    - openshift-nfd
-    - nvidia-gpu-operator
+      #    - openshift-nfd
+      #    - nvidia-gpu-operator
     - rag-llm
   subscriptions:
     # acm:
