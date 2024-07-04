@@ -3,9 +3,6 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: {{ .Values.subscription.name }}
-  annotations:
-    argocd.argoproj.io/hook: PreSync 
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded 
 spec:
   channel: {{ .Values.subscription.channel }}
   installPlanApproval: {{ .Values.subscription.installPlanApproval }}
